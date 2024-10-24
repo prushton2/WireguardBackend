@@ -11,8 +11,8 @@
 
 using std::string;
 
-#define PORT	 8080 
-#define MAXLINE 1024 
+#define PORT	8080 
+#define MAXLINE 1024
 
 // Driver code 
 int main() { 
@@ -50,22 +50,22 @@ int main() {
 
 	len = sizeof(cliaddr); //len is value/result 
 
-	n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
+	while(1) {
+		n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
 				MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
 				&len);
 
-    std::cout << "len: " << len << std::endl;
-    
-	buffer[n] = '\0'; 
+		std::cout << "len: " << len << std::endl;
+		
+		buffer[n] = '\0'; 
 
-	std::cout << "Client: " << buffer << std::endl; 
-	
-    sendto(sockfd, (const char *)hello, strlen(hello), 
-		MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
-			len);
-	
-	string datagram = std::string(buffer);
-    
-	std::cout<<"Hello message sent."<<std::endl; 
+		std::cout << "Datagram: " << buffer << std::endl; 
+		
+		sendto(sockfd, (const char *)hello, strlen(hello), 
+			MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
+				len);
+		
+		string datagram = std::string(buffer);
+	}
 	return 0; 
 }

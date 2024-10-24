@@ -8,7 +8,7 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
-#define PORT	 8080 
+#define PORT	8080 
 #define MAXLINE 1024 
 
 // Driver code 
@@ -37,7 +37,7 @@ int main() {
 	sendto(sockfd, (const char *)hello, strlen(hello), 
 		MSG_CONFIRM, (const struct sockaddr *) &servaddr, 
 			sizeof(servaddr)); 
-	std::cout<<"Hello message sent."<<std::endl; 
+	std::cout<<"Hello message sent." << std::endl; 
 		
 	n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
 				MSG_WAITALL, (struct sockaddr *) &servaddr, 
