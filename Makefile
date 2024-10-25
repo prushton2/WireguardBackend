@@ -3,8 +3,7 @@ make:
 	make run-server
 
 build:
-	g++ -o server src/UDPServer.cpp
-	g++ -o client src/UDPClient.cpp
+	g++ -o server src/main.cpp src/packetProcessor.cpp
 
 run-server:
 	./server
