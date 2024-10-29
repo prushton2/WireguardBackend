@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "messages.h"
+#include "UDPClient.h"
 
 using std::string;
 
@@ -65,19 +66,24 @@ int main() {
 				MSG_WAITALL, ( struct sockaddr *) &cliaddr,
 				&len);
 		
+		std::cout << "------------------------------" << std::endl << "Sender: ";
+		printf("%d.", (cliaddr.sin_addr.s_addr >> 0)  & 0b11111111);
+		printf("%d.", (cliaddr.sin_addr.s_addr >> 8)  & 0b11111111);
+		printf("%d.", (cliaddr.sin_addr.s_addr >> 16) & 0b11111111);
+		printf("%d\n", (cliaddr.sin_addr.s_addr >>24) & 0b11111111);
 		std::cout << "Length: " << n << std::endl;
 
 		buffer[n+1] = '\0';
 
-		std::cout << "Datagram: "<< std::endl;
+		// std::cout << "Datagram: "<< std::endl;
 
 
-		printf("Hexcode:");
-		for (int i = 0; i < n; ++i) {
-			if(i%16 == 0)
-				printf("\n");
-			printf("%02x ", (int)(*(unsigned char*)(&buffer[i])));
-		}
+		// printf("Hexcode:");
+		// for (int i = 0; i < n; ++i) {
+		// 	if(i%16 == 0)
+		// 		printf("\n");
+		// 	printf("%02x ", (int)(*(unsigned char*)(&buffer[i])));
+		// }
 		
 		std::cout << std::endl;
 
@@ -85,7 +91,7 @@ int main() {
 
 		unsigned int start = 4;
 		switch(buffer[0]) {
-			case (Type::InitiatorToResponder):
+			case (Type::InitiatorToResponder): {
 				struct InitiatorToResponder packet;
 				memcpy(&packet.sender, &buffer[start], 4); start += 4;
 				memcpy(&packet.ephemeral, &buffer[start], 32); start += 32;
@@ -102,17 +108,54 @@ int main() {
 				print_field(packet.timestamp, "Timestamp", 32);
 				print_field(packet.mac1, "Mac1", 32);
 				print_field(packet.mac2, "Mac2", 32);
-				
+
+				sendPacket(cliaddr.sin_addr.s_addr);
+
+				}
 
 				break;
-			case (Type::ResponderToInitiator):
+			case (Type::ResponderToInitiator): {
+				struct ResponderToInitiator packet;
+				memcpy(&packet.sender, &buffer[start], 4); start += 4;
+				memcpy(&packet.receiver, &buffer[start], 4); start += 4;
+				memcpy(&packet.ephemeral, &buffer[start], 32); start += 32;
+				memcpy(&packet.mac1, &buffer[start], 16); start += 16;
+				memcpy(&packet.mac2, &buffer[start], 16); start += 16;
+				
 				std::cout << "ResponderToInitiator" << std::endl;
+
+				print_field(packet.sender, "Sender", 4);
+				print_field(packet.receiver, "Receiver", 4);
+				print_field(packet.ephemeral, "Ephemeral", 32);
+				print_field(packet.mac1, "Mac1", 32);
+				print_field(packet.mac2, "Mac2", 32);
+				}
 				break;
-			case (Type::TransportDataMessage):
+			case (Type::TransportDataMessage): {
+				struct TransportDataMessage packet;
+				memcpy(&packet.receiver, &buffer[start], 4); start += 4;
+				memcpy(&packet.counter, &buffer[start], 8); start += 8;
+				memcpy(&packet.packet, &buffer[start], 64); start += 64;
+				
 				std::cout << "TransportDataMessage" << std::endl;
+
+				print_field(packet.receiver, "Receiver", 4);
+				print_field(packet.counter, "Counter", 8);
+				print_field(packet.packet, "Data", 64);
+				}
 				break;
-			case (Type::CookieReplyMessage):
+			case (Type::CookieReplyMessage):{
+				struct CookieReplyMessage packet;
+				memcpy(&packet.receiver, &buffer[start], 4); start += 4;
+				memcpy(&packet.nonce, &buffer[start], 24); start += 24;
+				memcpy(&packet.cookie, &buffer[start], 16); start += 16;
+				
 				std::cout << "CookieReplyMessage" << std::endl;
+
+				print_field(packet.receiver, "Sender", 4);
+				print_field(packet.nonce, "Nonce", 8);
+				print_field(packet.cookie, "Cookie", 64);
+				}
 				break;
 			default:
 				std::cout << "No recognized type" << std::endl;
